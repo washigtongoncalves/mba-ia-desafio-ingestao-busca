@@ -10,7 +10,7 @@ Responda sempre em Português Brasileiro.
 
 This is an MBA Full Cycle challenge project ("Ingestão e Busca Semântica com LangChain e Postgres"). It ingests a PDF into a PostgreSQL + pgVector store and answers CLI questions using only the retrieved context (RAG). Full requirements are in [README.md](README.md).
 
-The three `src/` scripts are currently stubs (`ingest_pdf()`, `search_prompt()` in [src/search.py](src/search.py), and `main()` in [src/chat.py](src/chat.py) are unimplemented `pass` bodies) — this is a work in progress, not a finished reference implementation.
+[src/ingest.py](src/ingest.py) is implemented; `search_prompt()` in [src/search.py](src/search.py) and the chat loop in [src/chat.py](src/chat.py) are still stubs — this is a work in progress, not a finished reference implementation.
 
 ## Setup & commands
 
@@ -20,10 +20,11 @@ pip install -r requirements.txt
 docker compose up -d          # starts Postgres (pgvector/pgvector:pg17) + a one-shot job that CREATEs the vector extension
 python src/ingest.py           # ingest document.pdf into the vector store
 python src/chat.py             # interactive CLI chat loop
-ruff check src/                # lint (config in pyproject.toml)
+ruff check src/ tests/         # lint (config in pyproject.toml)
+pytest                          # run the test suite (config in pyproject.toml)
 ```
 
-There are no test/build configs in this repo — do not assume tooling (pytest, etc.) is set up unless you add it. Lint is set up: `ruff` (config in [pyproject.toml](pyproject.toml)).
+There are no build configs in this repo. Lint and tests are set up: `ruff` and `pytest` (config in [pyproject.toml](pyproject.toml)). Tests live in `tests/`, mirroring `src/` module names (e.g. `tests/test_ingest.py` for `src/ingest.py`); `pyproject.toml` adds `src` to `pythonpath` so tests import modules directly (`import ingest`), not as a package.
 
 Environment variables (see [.env.example](.env.example), loaded via `python-dotenv`): `GOOGLE_API_KEY`, `GOOGLE_EMBEDDING_MODEL`, `OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL`, `DATABASE_URL`, `PG_VECTOR_COLLECTION_NAME`, `PDF_PATH`. The project supports either OpenAI or Gemini embeddings/LLM — pick one provider per instance, don't wire both.
 
@@ -47,4 +48,5 @@ The pgvector table's vector column dimension is fixed on first ingestion, based 
 - Não usar caracteres especiais nem acentuação no código-fonte (identificadores, comentários, mensagens de print/log) — inclusive em português, escrever sem acentos/cedilha (ex.: `colecao`, `nao`, `excecao`).
 - Exceção: strings literais exigidas verbatim pelo enunciado do desafio (ex.: a mensagem de recusa `"Não tenho informações necessárias para responder sua pergunta."` em `search.py`) mantêm o texto exato do README, acentos inclusos — são saída obrigatória do produto, não identificador/comentário de código.
 - Sempre utilizar o MCP Context7 para verificar a documentação/atualizações das bibliotecas (LangChain, langchain-postgres, langchain-openai, langchain-google-genai, pgvector, etc.) antes de assumir uma API a partir de memória/treinamento.
-- Sempre executar `ruff check src/` (config em [pyproject.toml](pyproject.toml)) apos qualquer implementacao ou alteracao em `src/`, e corrigir os problemas apontados antes de considerar a tarefa concluida.
+- Sempre executar `ruff check src/ tests/` (config em [pyproject.toml](pyproject.toml)) apos qualquer implementacao ou alteracao, e corrigir os problemas apontados antes de considerar a tarefa concluida.
+- Toda nova implementação de Python deve ser coberta por testes unitários (`pytest`, arquivos em `tests/`, seguindo o padrão `tests/test_<modulo>.py`) — a tarefa só está concluída quando os testes existem e passam (`pytest`).
