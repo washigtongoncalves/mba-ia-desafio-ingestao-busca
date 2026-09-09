@@ -1,0 +1,7 @@
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+# BLE001 ignorada de proposito: os scripts de CLI (ingest.py, search.py, chat.py)
+# capturam Exception no ponto de entrada para mostrar mensagem amigavel em vez de traceback.
+ignore = ["BLE001"]

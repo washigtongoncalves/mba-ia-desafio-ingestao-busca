@@ -20,9 +20,10 @@ pip install -r requirements.txt
 docker compose up -d          # starts Postgres (pgvector/pgvector:pg17) + a one-shot job that CREATEs the vector extension
 python src/ingest.py           # ingest document.pdf into the vector store
 python src/chat.py             # interactive CLI chat loop
+ruff check src/                # lint (config in pyproject.toml)
 ```
 
-There are no lint/test/build configs in this repo — do not assume tooling (pytest, ruff, etc.) is set up unless you add it.
+There are no test/build configs in this repo — do not assume tooling (pytest, etc.) is set up unless you add it. Lint is set up: `ruff` (config in [pyproject.toml](pyproject.toml)).
 
 Environment variables (see [.env.example](.env.example), loaded via `python-dotenv`): `GOOGLE_API_KEY`, `GOOGLE_EMBEDDING_MODEL`, `OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL`, `DATABASE_URL`, `PG_VECTOR_COLLECTION_NAME`, `PDF_PATH`. The project supports either OpenAI or Gemini embeddings/LLM — pick one provider per instance, don't wire both.
 
@@ -46,3 +47,4 @@ The pgvector table's vector column dimension is fixed on first ingestion, based 
 - Não usar caracteres especiais nem acentuação no código-fonte (identificadores, comentários, mensagens de print/log) — inclusive em português, escrever sem acentos/cedilha (ex.: `colecao`, `nao`, `excecao`).
 - Exceção: strings literais exigidas verbatim pelo enunciado do desafio (ex.: a mensagem de recusa `"Não tenho informações necessárias para responder sua pergunta."` em `search.py`) mantêm o texto exato do README, acentos inclusos — são saída obrigatória do produto, não identificador/comentário de código.
 - Sempre utilizar o MCP Context7 para verificar a documentação/atualizações das bibliotecas (LangChain, langchain-postgres, langchain-openai, langchain-google-genai, pgvector, etc.) antes de assumir uma API a partir de memória/treinamento.
+- Sempre executar `ruff check src/` (config em [pyproject.toml](pyproject.toml)) apos qualquer implementacao ou alteracao em `src/`, e corrigir os problemas apontados antes de considerar a tarefa concluida.
