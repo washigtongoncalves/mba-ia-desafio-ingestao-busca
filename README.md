@@ -57,7 +57,7 @@ Os limites de requisições gratuitas dos modelos podem mudar com frequência. P
 
 Este desafio não fixa modelos. Nomes e versões mudam com frequência e alguns são descontinuados, então faz parte do desafio consultar a documentação oficial do provedor que você escolher, ver quais modelos estão disponíveis no momento e selecionar os que atendem ao objetivo. Para o volume deste desafio, os modelos mais leves e baratos de cada provedor são suficientes.
 
-Atenção: modelos de embedding diferentes geram vetores com dimensões diferentes. A tabela de vetores é criada na primeira ingestão, já com a dimensão do modelo que você escolheu. Se você trocar de modelo de embeddings depois disso, a ingestão passa a falhar por incompatibilidade de dimensão. Nesse caso é responsabilidade sua apagar a collection existente (ou o volume do banco) e refazer a ingestão do zero com o novo modelo.
+Atenção: modelos de embedding diferentes geram vetores com dimensões diferentes. A tabela de vetores é criada na primeira ingestão, já com a dimensão do modelo que você escolheu. Se você trocar de modelo de embeddings depois disso, a ingestão passa a falhar por incompatibilidade de dimensão. Nesse caso é responsabilidade sua apagar a collection existente (ou o volume do banco) e refazer a ingestão do zero com o novo modelo. Para apagar a collection, use o script `src/apagar_colecao.py` (veja [Apagar a collection](#apagar-a-collection)).
 
 ## Requisitos
 
@@ -151,6 +151,16 @@ python src/ingest.py
 ```
 python src/chat.py
 ```
+
+## Apagar a collection
+
+Se precisar trocar de modelo de embeddings ou simplesmente refazer a ingestão do zero, apague a collection existente antes de rodar `ingest.py` novamente:
+
+```
+python src/apagar_colecao.py
+```
+
+Esse script apaga a collection configurada em `PG_VECTOR_COLLECTION_NAME` (e todos os vetores associados a ela) do banco definido em `DATABASE_URL`. A operação é irreversível.
 
 ## Entregável
 
