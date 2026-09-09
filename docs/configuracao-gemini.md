@@ -12,15 +12,15 @@ Este guia mostra como obter as credenciais do Gemini e preencher as variáveis d
 
 ```
 GOOGLE_API_KEY=sua-chave-aqui
-GOOGLE_EMBEDDING_MODEL='models/gemini-embedding-001'
+GOOGLE_EMBEDDING_MODEL='models/gemini-embedding-2-preview'
 ```
 
 - `GOOGLE_API_KEY`: a chave criada no passo 1.
 - `GOOGLE_EMBEDDING_MODEL`: modelo usado para gerar os embeddings dos chunks do PDF.
 
-## Atenção: o modelo padrão do `.env.example` está desatualizado
+## Atenção: modelos antigos de embedding foram descontinuados
 
-O `.env.example` deste repositório traz `models/embedding-001` como valor padrão, mas esse modelo (e outros da geração anterior, como `text-embedding-004`) já foi descontinuado pelo Google — confira a [página de descontinuações](https://ai.google.dev/gemini-api/docs/deprecations) antes de rodar a ingestão. Use um modelo vigente, por exemplo `models/gemini-embedding-001` (veja o [guia de Embeddings do Gemini](https://ai.google.dev/gemini-api/docs/embeddings) para as opções atuais).
+Os modelos `models/embedding-001`, `models/text-embedding-004` e `models/gemini-embedding-001` (geracoes anteriores) ja foram descontinuados pelo Google — confira a [página de descontinuações](https://ai.google.dev/gemini-api/docs/deprecations) antes de rodar a ingestão. O `.env.example` deste repositório já traz o modelo vigente, `models/gemini-embedding-2-preview` (veja o [guia de Embeddings do Gemini](https://ai.google.dev/gemini-api/docs/embeddings) para as opções atuais).
 
 ## Demais atenções
 
