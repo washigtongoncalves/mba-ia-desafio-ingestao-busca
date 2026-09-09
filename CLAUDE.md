@@ -10,7 +10,7 @@ Responda sempre em Português Brasileiro.
 
 This is an MBA Full Cycle challenge project ("Ingestão e Busca Semântica com LangChain e Postgres"). It ingests a PDF into a PostgreSQL + pgVector store and answers CLI questions using only the retrieved context (RAG). Full requirements are in [README.md](README.md).
 
-[src/ingest.py](src/ingest.py) is implemented; `search_prompt()` in [src/search.py](src/search.py) and the chat loop in [src/chat.py](src/chat.py) are still stubs — this is a work in progress, not a finished reference implementation.
+[src/ingest.py](src/ingest.py) and `search_prompt()` in [src/search.py](src/search.py) are implemented; the chat loop in [src/chat.py](src/chat.py) is still a stub — this is a work in progress, not a finished reference implementation.
 
 ## Setup & commands
 
@@ -26,14 +26,13 @@ pytest                          # run the test suite (config in pyproject.toml)
 
 There are no build configs in this repo. Lint and tests are set up: `ruff` and `pytest` (config in [pyproject.toml](pyproject.toml)). Tests live in `tests/`, mirroring `src/` module names (e.g. `tests/test_ingest.py` for `src/ingest.py`); `pyproject.toml` adds `src` to `pythonpath` so tests import modules directly (`import ingest`), not as a package.
 
-Environment variables (see [.env.example](.env.example), loaded via `python-dotenv`): `GOOGLE_API_KEY`, `GOOGLE_EMBEDDING_MODEL`, `OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL`, `DATABASE_URL`, `PG_VECTOR_COLLECTION_NAME`, `PDF_PATH`. The project supports either OpenAI or Gemini embeddings/LLM — pick one provider per instance, don't wire both.
+Environment variables (see [.env.example](.env.example), loaded via `python-dotenv`): `GOOGLE_API_KEY`, `GOOGLE_EMBEDDING_MODEL`, `GOOGLE_CHAT_MODEL`, `OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL`, `OPENAI_CHAT_MODEL`, `DATABASE_URL`, `PG_VECTOR_COLLECTION_NAME`, `PDF_PATH`. The project supports either OpenAI or Gemini embeddings/LLM — pick one provider per instance, don't wire both.
 
 ## Architecture
 
-Three-script pipeline, no shared library code between them:
-
-- **[src/ingest.py](src/ingest.py)** — loads `PDF_PATH` with `PyPDFLoader`, splits with `RecursiveCharacterTextSplitter` (chunk_size=1000, chunk_overlap=150 — fixed by spec), embeds each chunk, and writes vectors via `langchain_postgres.PGVector` into `DATABASE_URL` under collection `PG_VECTOR_COLLECTION_NAME`.
-- **[src/search.py](src/search.py)** — `search_prompt(question)` embeds the question, runs `similarity_search_with_score(query, k=10)` against the same PGVector collection, concatenates the top-10 chunks into `PROMPT_TEMPLATE`'s `{contexto}` slot, and calls the LLM. The prompt template is fixed by spec (README §"Consulta via CLI") — answers must come only from retrieved context, otherwise reply with the exact refusal string `"Não tenho informações necessárias para responder sua pergunta."`
+- **[src/provedores.py](src/provedores.py)** — shared module used by `ingest.py` and `search.py`: reads the provider env vars, and exposes `obter_embeddings()`, `obter_llm()` and `montar_string_conexao()`. Both scripts do `import provedores` and read/call it via qualified access (`provedores.url_banco_dados`, `provedores.obter_embeddings()`, ...) rather than copying values with a `from`-import, so tests can monkeypatch `provedores` attributes directly and every caller sees the patched value.
+- **[src/ingest.py](src/ingest.py)** — loads `PDF_PATH` with `PyPDFLoader`, splits with `RecursiveCharacterTextSplitter` (chunk_size=1000, chunk_overlap=150 — fixed by spec), embeds each chunk via `provedores.obter_embeddings()`, and writes vectors via `langchain_postgres.PGVector` into `DATABASE_URL` under collection `PG_VECTOR_COLLECTION_NAME`.
+- **[src/search.py](src/search.py)** — `search_prompt(question)` embeds the question, runs `similarity_search_with_score(query, k=10)` against the same PGVector collection, concatenates the top-10 chunks into `PROMPT_TEMPLATE`'s `{contexto}` slot, and calls `provedores.obter_llm()`. The prompt template is fixed by spec (README §"Consulta via CLI") — answers must come only from retrieved context, otherwise reply with the exact refusal string `"Não tenho informações necessárias para responder sua pergunta."`
 - **[src/chat.py](src/chat.py)** — thin CLI loop that calls `search_prompt()` and prints `PERGUNTA:` / `RESPOSTA:` pairs.
 
 ### Critical constraint: embedding dimension lock-in
