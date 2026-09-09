@@ -37,3 +37,12 @@ Three-script pipeline, no shared library code between them:
 ### Critical constraint: embedding dimension lock-in
 
 The pgvector table's vector column dimension is fixed on first ingestion, based on whichever embedding model was used. Switching `OPENAI_EMBEDDING_MODEL`/`GOOGLE_EMBEDDING_MODEL` after data exists breaks ingestion with a dimension-mismatch error. If the embedding model changes, the collection (or the `postgres_data` Docker volume) must be dropped and `ingest.py` rerun from scratch — there is no migration path.
+
+## Convenções de código
+
+- Código-fonte (identificadores, comentários, mensagens no console) em Português Brasileiro sempre que possível.
+- Não misturar idiomas em nomes de identificadores (evitar, por exemplo, `get_dados`; usar `obtem_dados`).
+- Nunca usar emojis em nenhuma parte do código-fonte.
+- Não usar caracteres especiais nem acentuação no código-fonte (identificadores, comentários, mensagens de print/log) — inclusive em português, escrever sem acentos/cedilha (ex.: `colecao`, `nao`, `excecao`).
+- Exceção: strings literais exigidas verbatim pelo enunciado do desafio (ex.: a mensagem de recusa `"Não tenho informações necessárias para responder sua pergunta."` em `search.py`) mantêm o texto exato do README, acentos inclusos — são saída obrigatória do produto, não identificador/comentário de código.
+- Sempre utilizar o MCP Context7 para verificar a documentação/atualizações das bibliotecas (LangChain, langchain-postgres, langchain-openai, langchain-google-genai, pgvector, etc.) antes de assumir uma API a partir de memória/treinamento.
