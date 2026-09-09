@@ -1,6 +1,6 @@
 # Configuração da OpenAI
 
-Este guia mostra como obter as credenciais da OpenAI e preencher as variáveis de ambiente usadas por este projeto (`OPENAI_API_KEY` e `OPENAI_EMBEDDING_MODEL`, no arquivo `.env`).
+Este guia mostra como obter as credenciais da OpenAI e preencher as variáveis de ambiente usadas por este projeto (`OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL` e `OPENAI_CHAT_MODEL`, no arquivo `.env`).
 
 ## 1. Criar uma API Key
 
@@ -13,10 +13,12 @@ Este guia mostra como obter as credenciais da OpenAI e preencher as variáveis d
 ```
 OPENAI_API_KEY=sk-sua-chave-aqui
 OPENAI_EMBEDDING_MODEL='text-embedding-3-small'
+OPENAI_CHAT_MODEL='gpt-5.6-luna'
 ```
 
 - `OPENAI_API_KEY`: a chave criada no passo 1.
 - `OPENAI_EMBEDDING_MODEL`: modelo usado para gerar os embeddings dos chunks do PDF. `text-embedding-3-small` é o modelo mais leve e barato da linha atual (veja o [guia de embeddings](https://developers.openai.com/api/docs/guides/embeddings) para outras opções, como `text-embedding-3-large`).
+- `OPENAI_CHAT_MODEL`: modelo usado para gerar a resposta em `src/search.py`. `gpt-5.6-luna` é a variante mais leve e barata da familia GPT-5.6 atual (veja a [visao geral de modelos](https://developers.openai.com/api/docs/models) para outras opções).
 
 ## Atenção
 

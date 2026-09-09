@@ -1,6 +1,6 @@
 # Configuração do Gemini (Google AI)
 
-Este guia mostra como obter as credenciais do Gemini e preencher as variáveis de ambiente usadas por este projeto (`GOOGLE_API_KEY` e `GOOGLE_EMBEDDING_MODEL`, no arquivo `.env`).
+Este guia mostra como obter as credenciais do Gemini e preencher as variáveis de ambiente usadas por este projeto (`GOOGLE_API_KEY`, `GOOGLE_EMBEDDING_MODEL` e `GOOGLE_CHAT_MODEL`, no arquivo `.env`).
 
 ## 1. Criar uma API Key
 
@@ -13,10 +13,12 @@ Este guia mostra como obter as credenciais do Gemini e preencher as variáveis d
 ```
 GOOGLE_API_KEY=sua-chave-aqui
 GOOGLE_EMBEDDING_MODEL='models/gemini-embedding-2-preview'
+GOOGLE_CHAT_MODEL='gemini-3.5-flash'
 ```
 
 - `GOOGLE_API_KEY`: a chave criada no passo 1.
 - `GOOGLE_EMBEDDING_MODEL`: modelo usado para gerar os embeddings dos chunks do PDF.
+- `GOOGLE_CHAT_MODEL`: modelo usado para gerar a resposta em `src/search.py`.
 
 ## Atenção: modelos antigos de embedding foram descontinuados
 
