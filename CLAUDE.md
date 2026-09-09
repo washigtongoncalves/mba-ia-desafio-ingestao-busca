@@ -1,0 +1,51 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Idioma
+
+Responda sempre em Português Brasileiro.
+
+## Project
+
+This is an MBA Full Cycle challenge project ("Ingestão e Busca Semântica com LangChain e Postgres"). It ingests a PDF into a PostgreSQL + pgVector store and answers CLI questions using only the retrieved context (RAG). Full requirements are in [README.md](README.md).
+
+[src/ingest.py](src/ingest.py) and `search_prompt()` in [src/search.py](src/search.py) are implemented; the chat loop in [src/chat.py](src/chat.py) is still a stub — this is a work in progress, not a finished reference implementation.
+
+## Setup & commands
+
+```bash
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+docker compose up -d          # starts Postgres (pgvector/pgvector:pg17) + a one-shot job that CREATEs the vector extension
+python src/ingest.py           # ingest document.pdf into the vector store
+python src/chat.py             # interactive CLI chat loop
+ruff check src/ tests/         # lint (config in pyproject.toml)
+pytest                          # run the test suite (config in pyproject.toml)
+```
+
+There are no build configs in this repo. Lint and tests are set up: `ruff` and `pytest` (config in [pyproject.toml](pyproject.toml)). Tests live in `tests/`, mirroring `src/` module names (e.g. `tests/test_ingest.py` for `src/ingest.py`); `pyproject.toml` adds `src` to `pythonpath` so tests import modules directly (`import ingest`), not as a package.
+
+Environment variables (see [.env.example](.env.example), loaded via `python-dotenv`): `GOOGLE_API_KEY`, `GOOGLE_EMBEDDING_MODEL`, `GOOGLE_CHAT_MODEL`, `OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL`, `OPENAI_CHAT_MODEL`, `DATABASE_URL`, `PG_VECTOR_COLLECTION_NAME`, `PDF_PATH`. The project supports either OpenAI or Gemini embeddings/LLM — pick one provider per instance, don't wire both.
+
+## Architecture
+
+- **[src/provedores.py](src/provedores.py)** — shared module used by `ingest.py` and `search.py`: reads the provider env vars, and exposes `obter_embeddings()`, `obter_llm()` and `montar_string_conexao()`. Both scripts do `import provedores` and read/call it via qualified access (`provedores.url_banco_dados`, `provedores.obter_embeddings()`, ...) rather than copying values with a `from`-import, so tests can monkeypatch `provedores` attributes directly and every caller sees the patched value.
+- **[src/ingest.py](src/ingest.py)** — loads `PDF_PATH` with `PyPDFLoader`, splits with `RecursiveCharacterTextSplitter` (chunk_size=1000, chunk_overlap=150 — fixed by spec), embeds each chunk via `provedores.obter_embeddings()`, and writes vectors via `langchain_postgres.PGVector` into `DATABASE_URL` under collection `PG_VECTOR_COLLECTION_NAME`.
+- **[src/search.py](src/search.py)** — `search_prompt(question)` embeds the question, runs `similarity_search_with_score(query, k=10)` against the same PGVector collection, concatenates the top-10 chunks into `PROMPT_TEMPLATE`'s `{contexto}` slot, and calls `provedores.obter_llm()`. The prompt template is fixed by spec (README §"Consulta via CLI") — answers must come only from retrieved context, otherwise reply with the exact refusal string `"Não tenho informações necessárias para responder sua pergunta."`
+- **[src/chat.py](src/chat.py)** — thin CLI loop that calls `search_prompt()` and prints `PERGUNTA:` / `RESPOSTA:` pairs.
+
+### Critical constraint: embedding dimension lock-in
+
+The pgvector table's vector column dimension is fixed on first ingestion, based on whichever embedding model was used. Switching `OPENAI_EMBEDDING_MODEL`/`GOOGLE_EMBEDDING_MODEL` after data exists breaks ingestion with a dimension-mismatch error. If the embedding model changes, the collection (or the `postgres_data` Docker volume) must be dropped and `ingest.py` rerun from scratch — there is no migration path.
+
+## Convenções de código
+
+- Código-fonte (identificadores, comentários, mensagens no console) em Português Brasileiro sempre que possível.
+- Não misturar idiomas em nomes de identificadores (evitar, por exemplo, `get_dados`; usar `obtem_dados`).
+- Nunca usar emojis em nenhuma parte do código-fonte.
+- Não usar caracteres especiais nem acentuação no código-fonte (identificadores, comentários, mensagens de print/log) — inclusive em português, escrever sem acentos/cedilha (ex.: `colecao`, `nao`, `excecao`).
+- Exceção: strings literais exigidas verbatim pelo enunciado do desafio (ex.: a mensagem de recusa `"Não tenho informações necessárias para responder sua pergunta."` em `search.py`) mantêm o texto exato do README, acentos inclusos — são saída obrigatória do produto, não identificador/comentário de código.
+- Sempre utilizar o MCP Context7 para verificar a documentação/atualizações das bibliotecas (LangChain, langchain-postgres, langchain-openai, langchain-google-genai, pgvector, etc.) antes de assumir uma API a partir de memória/treinamento.
+- Sempre executar `ruff check src/ tests/` (config em [pyproject.toml](pyproject.toml)) apos qualquer implementacao ou alteracao, e corrigir os problemas apontados antes de considerar a tarefa concluida.
+- Toda nova implementação de Python deve ser coberta por testes unitários (`pytest`, arquivos em `tests/`, seguindo o padrão `tests/test_<modulo>.py`) — a tarefa só está concluída quando os testes existem e passam (`pytest`).

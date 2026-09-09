@@ -1,3 +1,7 @@
+from langchain_postgres import PGVector
+
+import provedores
+
 PROMPT_TEMPLATE = """
 CONTEXTO:
 {contexto}
@@ -25,5 +29,33 @@ PERGUNTA DO USUÁRIO:
 RESPONDA A "PERGUNTA DO USUÁRIO"
 """
 
+
 def search_prompt(question=None):
-    pass
+    if not question:
+        raise RuntimeError("Informe uma pergunta para realizar a busca.")
+
+    variaveis_obrigatorias = {
+        "DATABASE_URL": provedores.url_banco_dados,
+        "PG_VECTOR_COLLECTION_NAME": provedores.nome_colecao,
+    }
+    ausentes = [nome for nome, valor in variaveis_obrigatorias.items() if not valor]
+    if ausentes:
+        raise RuntimeError(
+            f"Variaveis de ambiente ausentes no .env: {', '.join(ausentes)}"
+        )
+
+    armazenamento_vetorial = PGVector(
+        embeddings=provedores.obter_embeddings(),
+        collection_name=provedores.nome_colecao,
+        connection=provedores.montar_string_conexao(),
+        use_jsonb=True,
+    )
+
+    resultados = armazenamento_vetorial.similarity_search_with_score(question, k=10)
+    contexto = "\n\n".join(documento.page_content for documento, _pontuacao in resultados)
+
+    prompt = PROMPT_TEMPLATE.format(contexto=contexto, pergunta=question)
+
+    resposta = provedores.obter_llm().invoke(prompt)
+
+    return resposta.content

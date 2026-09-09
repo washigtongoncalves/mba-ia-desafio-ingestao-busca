@@ -43,11 +43,13 @@ RESPOSTA: Não tenho informações necessárias para responder sua pergunta.
 
 - Crie uma API Key da OpenAI.
 - Você vai precisar de um modelo de embeddings e de um modelo de LLM para responder. Consulte a documentação oficial da OpenAI para ver os modelos disponíveis.
+- Guia de configuração das variáveis de ambiente: [docs/configuracao-openai.md](docs/configuracao-openai.md).
 
 ## Gemini
 
 - Crie uma API Key da Google.
 - Você vai precisar de um modelo de embeddings e de um modelo de LLM para responder. Consulte a documentação oficial do Google para ver os modelos disponíveis.
+- Guia de configuração das variáveis de ambiente: [docs/configuracao-gemini.md](docs/configuracao-gemini.md).
 
 Os limites de requisições gratuitas dos modelos podem mudar com frequência. Para informações atualizadas, consulte a documentação oficial do Google.
 
